@@ -6,7 +6,7 @@ function NotificationsModal({ isOpen, onClose, notifications, userId, onClear })
   const handleClearNotifications = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://127.0.0.1:8000/api/${userId}/notifications/clear`, {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/${userId}/notifications/clear`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,

@@ -16,7 +16,7 @@ function SettingsModal({ isOpen, onClose, user, theme, onThemeChange }) {
     try {
       setError(null);
       const token = localStorage.getItem('token');
-      const response = await fetch('http://127.0.0.1:8000/api/sockets/delete-all', {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/sockets/delete-all`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -41,7 +41,7 @@ function SettingsModal({ isOpen, onClose, user, theme, onThemeChange }) {
     try {
       setError(null);
       const token = localStorage.getItem('token');
-      const response = await fetch('http://127.0.0.1:8000/api/user/delete', {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/user/delete`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,

@@ -37,7 +37,7 @@ function Dashboard() {
 
     const fetchUserData = async () => {
       try {
-        const response = await fetch('http://127.0.0.1:8000/api/user', {
+        const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/user`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Accept': 'application/json',
@@ -52,7 +52,7 @@ function Dashboard() {
         setUser(data);
         
         // Fetch user's servers after getting user data
-        const serversResponse = await fetch(`http://127.0.0.1:8000/api/servers/${data.id}`, {
+        const serversResponse = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/servers/${data.id}`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Accept': 'application/json',
@@ -78,7 +78,7 @@ function Dashboard() {
     try {
       const token = localStorage.getItem('token');
       if (token) {
-        await fetch('http://127.0.0.1:8000/api/logout', {
+        await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/logout`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -105,7 +105,7 @@ function Dashboard() {
   const handleServerSubmit = async (formData) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://127.0.0.1:8000/api/server/new', {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/server/new`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -138,7 +138,7 @@ function Dashboard() {
   const handleStartServer = async (serverId) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://127.0.0.1:8000/api/server/${serverId}/start`, {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/server/${serverId}/start`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -160,7 +160,7 @@ function Dashboard() {
   const handleStopServer = async (serverId) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://127.0.0.1:8000/api/server/${serverId}/stop`, {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/server/${serverId}/stop`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -189,7 +189,7 @@ function Dashboard() {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://127.0.0.1:8000/api/server/${serverToDelete.id}`, {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/server/${serverToDelete.id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -232,7 +232,7 @@ function Dashboard() {
     setIsStatusLoading(prev => ({ ...prev, [serverId]: true }));
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://127.0.0.1:8000/api/server/${serverId}/status`, {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/server/${serverId}/status`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -286,7 +286,7 @@ function Dashboard() {
   const handleStopClick = async (serverId) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://127.0.0.1:8000/api/server/${serverId}/players`, {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/server/${serverId}/players`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -353,7 +353,7 @@ function Dashboard() {
         for (const server of servers) {
           if (serverStatuses[server.id] === 'online') {
             try {
-              const response = await fetch(`http://127.0.0.1:8000/api/server/${server.id}/players`, {
+              const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/server/${server.id}/players`, {
                 method: 'POST',
                 headers: {
                   'Authorization': `Bearer ${token}`,

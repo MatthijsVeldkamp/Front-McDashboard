@@ -60,7 +60,7 @@ const Console = ({ isOpen, onClose, serverId }) => {
     const fetchPlayers = async () => {
       try {
         const token = localStorage.getItem('token');
-        const response = await fetch(`http://127.0.0.1:8000/api/server/${serverId}/players`, {
+        const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/server/${serverId}/players`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -93,7 +93,7 @@ const Console = ({ isOpen, onClose, serverId }) => {
     const fetchBannedPlayers = async () => {
       try {
         const token = localStorage.getItem('token');
-        const response = await fetch(`http://127.0.0.1:8000/api/server/${serverId}/banned`, {
+        const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/server/${serverId}/banned`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -133,7 +133,7 @@ const Console = ({ isOpen, onClose, serverId }) => {
     const fetchLogs = async () => {
       try {
         const token = localStorage.getItem('token');
-        const response = await fetch(`http://127.0.0.1:8000/api/server/${serverId}/log`, {
+        const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/server/${serverId}/log`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -179,7 +179,7 @@ const Console = ({ isOpen, onClose, serverId }) => {
     const cleanCmd = cmd.startsWith('/') ? cmd.slice(1) : cmd;
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://127.0.0.1:8000/api/server/${serverId}/command/${encodeURIComponent(cleanCmd)}`, {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/server/${serverId}/command/${encodeURIComponent(cleanCmd)}`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -205,7 +205,7 @@ const Console = ({ isOpen, onClose, serverId }) => {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://127.0.0.1:8000/api/server/${serverId}/command/${encodeURIComponent(command)}`, {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/server/${serverId}/command/${encodeURIComponent(command)}`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -283,7 +283,7 @@ const Console = ({ isOpen, onClose, serverId }) => {
     const fetchKickHistory = async () => {
       try {
         const token = localStorage.getItem('token');
-        const response = await fetch(`http://127.0.0.1:8000/api/server/${serverId}/kicked`, {
+        const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/server/${serverId}/kicked`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -310,7 +310,7 @@ const Console = ({ isOpen, onClose, serverId }) => {
     const fetchBanHistory = async () => {
       try {
         const token = localStorage.getItem('token');
-        const response = await fetch(`http://127.0.0.1:8000/api/server/${serverId}/banned`, {
+        const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/server/${serverId}/banned`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`,
