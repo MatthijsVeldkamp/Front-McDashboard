@@ -1,9 +1,16 @@
 import React, { useState } from 'react';
+import { t, setLanguage, getCurrentLanguage } from '../utils/languages';
 
 function SettingsModal({ isOpen, onClose, user, theme, onThemeChange }) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showAccountDeleteConfirm, setShowAccountDeleteConfirm] = useState(false);
   const [error, setError] = useState(null);
+
+  const handleLanguageChange = (e) => {
+    const newLang = e.target.value;
+    setLanguage(newLang);
+    window.location.reload(); // Reload to apply new language
+  };
 
   const handleDeleteAllSockets = async () => {
     try {
@@ -106,6 +113,23 @@ function SettingsModal({ isOpen, onClose, user, theme, onThemeChange }) {
           </div>
         </div>
 
+        <div className="divider my-6">Language Settings</div>
+
+        {/* Language Settings */}
+        <div className="form-control w-3/4 mx-auto">
+          <label className="label">
+            <span className="label-text font-bold">Language / Taal:</span>
+          </label>
+          <select 
+            className="select select-bordered w-full"
+            value={getCurrentLanguage()}
+            onChange={handleLanguageChange}
+          >
+            <option value="nl">Nederlands</option>
+            <option value="en">English</option>
+          </select>
+        </div>
+
         <div className="divider my-6">Theme Settings</div>
 
         {/* Theme Settings */}
@@ -142,86 +166,12 @@ function SettingsModal({ isOpen, onClose, user, theme, onThemeChange }) {
           </div>
         </div>
 
-        <div className="divider my-6">Danger Zone</div>
-
-        {/* Danger Zone */}
-        <div className="space-y-4 w-3/4 mx-auto">
-          <div className="alert alert-error">
-            <div className="flex flex-col gap-2">
-              <h3 className="font-bold">Delete All Sockets</h3>
-              <p>This will permanently delete all your sockets. This action cannot be undone.</p>
-              <button 
-                className="btn btn-error btn-sm w-full"
-                onClick={() => setShowDeleteConfirm(true)}
-              >
-                Delete All Sockets
-              </button>
-            </div>
-          </div>
-
-          <div className="alert alert-error">
-            <div className="flex flex-col gap-2">
-              <h3 className="font-bold">Delete Account</h3>
-              <p>This will permanently delete your account and all associated data. This action cannot be undone.</p>
-              <button 
-                className="btn btn-error btn-sm w-full"
-                onClick={() => setShowAccountDeleteConfirm(true)}
-              >
-                Delete Account
-              </button>
-            </div>
-          </div>
-        </div>
-
         <div className="modal-action">
           <button type="button" className="btn" onClick={onClose}>
             Close
           </button>
         </div>
       </div>
-
-      {/* Delete All Sockets Confirmation Modal */}
-      <dialog className="modal" open={showDeleteConfirm}>
-        <div className="modal-box">
-          <h3 className="font-bold text-lg">Delete All Sockets</h3>
-          <p className="py-4">Are you sure you want to delete all your sockets? This action cannot be undone.</p>
-          <div className="modal-action">
-            <button className="btn" onClick={() => setShowDeleteConfirm(false)}>Cancel</button>
-            <button 
-              className="btn btn-error" 
-              onClick={handleDeleteAllSockets}
-            >
-              Delete All
-            </button>
-          </div>
-        </div>
-      </dialog>
-
-      {/* Delete Account Confirmation Modal */}
-      <dialog className="modal" open={showAccountDeleteConfirm}>
-        <div className="modal-box">
-          <h3 className="font-bold text-lg">Delete Account</h3>
-          <p className="py-4">Are you sure you want to delete your account? This will permanently delete all your data and cannot be undone.</p>
-          <div className="modal-action">
-            <button className="btn" onClick={() => setShowAccountDeleteConfirm(false)}>Cancel</button>
-            <button 
-              className="btn btn-error" 
-              onClick={handleDeleteAccount}
-              disabled={showAccountDeleteConfirm}
-              ref={buttonRef => {
-                if (buttonRef && showAccountDeleteConfirm) {
-                  buttonRef.disabled = true;
-                  setTimeout(() => {
-                    buttonRef.disabled = false;
-                  }, 5000);
-                }
-              }}
-            >
-              Delete Account
-            </button>
-          </div>
-        </div>
-      </dialog>
     </dialog>
   );
 }

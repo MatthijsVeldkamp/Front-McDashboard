@@ -1,138 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { showToast } from '../utils/toast';
+import { t } from '../utils/languages';
 import '../utils/toast.css';
 import Console from './Console';
-
-const AddServerModal = ({ isOpen, onClose, onSubmit }) => {
-  const [serverForm, setServerForm] = useState({ 
-    name: '', 
-    version: '', 
-    ip_address: '', 
-    port: '' 
-  });
-
-  useEffect(() => {
-    if (!isOpen) {
-      setServerForm({ name: '', version: '', ip_address: '', port: '' });
-    }
-  }, [isOpen]);
-
-  const handleServerChange = (e) => {
-    const { name, value } = e.target;
-    setServerForm(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!serverForm.name || !serverForm.version || !serverForm.ip_address || !serverForm.port) {
-      return;
-    }
-    onSubmit(serverForm);
-  };
-
-  if (!isOpen) return null;
-
-  return (
-    <dialog className="modal modal-open">
-      <div className="modal-box max-w-2xl bg-base-100">
-        <div className="flex justify-between items-center mb-6">
-          <h3 className="font-bold text-xl">Nieuwe Minecraft Server</h3>
-          <button 
-            onClick={onClose} 
-            className="btn btn-sm btn-circle btn-ghost"
-          >
-            <i className="fas fa-times"></i>
-          </button>
-        </div>
-        
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="card bg-base-200 shadow-sm">
-            <div className="card-body p-4">
-              <div className="flex flex-col gap-4 w-full">
-                <div className="form-control w-full">
-                  <label className="label">
-                    <span className="label-text">Server Naam</span>
-                  </label>
-                  <input
-                    type="text"
-                    name="name"
-                    value={serverForm.name}
-                    onChange={handleServerChange}
-                    className="input input-bordered w-full"
-                    placeholder="Mijn Minecraft Server"
-                    required
-                  />
-                </div>
-                <div className="form-control w-full">
-                  <label className="label">
-                    <span className="label-text">Versie</span>
-                  </label>
-                  <input
-                    type="text"
-                    name="version"
-                    value={serverForm.version}
-                    onChange={handleServerChange}
-                    className="input input-bordered w-full"
-                    placeholder="1.20.4"
-                    required
-                  />
-                </div>
-                <div className="form-control w-full">
-                  <label className="label">
-                    <span className="label-text">IP Adres</span>
-                  </label>
-                  <input
-                    type="text"
-                    name="ip_address"
-                    value={serverForm.ip_address}
-                    onChange={handleServerChange}
-                    className="input input-bordered w-full"
-                    placeholder="127.0.0.1"
-                    required
-                  />
-                </div>
-                <div className="form-control w-full">
-                  <label className="label">
-                    <span className="label-text">Poort</span>
-                  </label>
-                  <input
-                    type="number"
-                    name="port"
-                    value={serverForm.port}
-                    onChange={handleServerChange}
-                    className="input input-bordered w-full"
-                    placeholder="25565"
-                    required
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="modal-action mt-6 flex justify-end">
-            <button type="button" className="btn btn-ghost" onClick={onClose}>
-              Annuleren
-            </button>
-            <button 
-              type="submit" 
-              className="btn btn-primary" 
-              disabled={!serverForm.name || !serverForm.version || !serverForm.ip_address || !serverForm.port}
-            >
-              Server Aanmaken
-            </button>
-          </div>
-        </form>
-      </div>
-      <form method="dialog" className="modal-backdrop">
-        <button onClick={onClose}><i className="fas fa-times"></i></button>
-      </form>
-    </dialog>
-  );
-};
+import AddServerModal from './AddServerModal';
 
 function Dashboard() {
   const navigate = useNavigate();
@@ -150,6 +22,10 @@ function Dashboard() {
   const [serverToStop, setServerToStop] = useState(null);
   const [onlinePlayers, setOnlinePlayers] = useState([]);
   const [serverPlayers, setServerPlayers] = useState({});
+  const [collapsedSections, setCollapsedSections] = useState({
+    online: false,
+    offline: false
+  });
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -247,8 +123,8 @@ function Dashboard() {
       const newServer = await response.json();
       
       // Add the new server to the list and fetch its status
-      setServers(prevServers => [...prevServers, newServer.data]);
-      fetchServerStatus(newServer.data.id);
+      setServers(prevServers => [...prevServers, newServer.server]);
+      fetchServerStatus(newServer.server.id);
       
       // Close the modal after successful creation
       handleModalClose();
@@ -517,6 +393,18 @@ function Dashboard() {
     };
   }, [servers, serverStatuses]);
 
+  const toggleSection = (section) => {
+    setCollapsedSections(prev => ({
+      ...prev,
+      [section]: !prev[section]
+    }));
+  };
+
+  // Only show servers with a known status
+  const onlineServers = servers.filter(server => serverStatuses[server.id] === 'online');
+  const offlineServers = servers.filter(server => serverStatuses[server.id] === 'offline');
+  // Servers with status undefined or 'loading' are not shown
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-base-200 p-8">
@@ -525,18 +413,57 @@ function Dashboard() {
             <div className="card bg-base-100 shadow-xl rounded-lg">
               <div className="card-body">
                 <div className="flex justify-between items-center mb-6">
-                  <h2 className="card-title text-2xl">Minecraft Server Dashboard</h2>
+                  <h2 className="card-title text-2xl">{t('dashboard.title')}</h2>
                   <div className="flex gap-2">
                     <div className="skeleton h-10 w-32"></div>
                     <div className="skeleton h-10 w-24"></div>
                   </div>
                 </div>
                 
-                <div className="space-y-4">
+                <div className="space-y-6">
+                  {/* Online Servers Skeleton */}
                   <div className="space-y-4">
-                    <h3 className="text-xl font-bold">Mijn Servers <span className="font-mono">(0)</span></h3>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="skeleton h-4 w-4 rounded-full"></div>
+                        <h3 className="text-xl font-bold">{t('dashboard.onlineServers')} <span className="font-mono">(0)</span></h3>
+                      </div>
+                      <div className="skeleton h-6 w-6"></div>
+                    </div>
                     <div className="grid gap-4">
-                      {[1, 2, 3].map((i) => (
+                      {[1, 2].map((i) => (
+                        <div key={i} className="card bg-base-100 shadow border-2 border-base-300">
+                          <div className="card-body">
+                            <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
+                              <div className="w-full space-y-2">
+                                <div className="skeleton h-6 w-48"></div>
+                                <div className="skeleton h-4 w-32"></div>
+                                <div className="skeleton h-4 w-40"></div>
+                                <div className="skeleton h-4 w-24"></div>
+                              </div>
+                              <div className="w-full sm:w-auto flex justify-center sm:justify-end gap-2">
+                                <div className="skeleton h-8 w-32"></div>
+                                <div className="skeleton h-8 w-32"></div>
+                                <div className="skeleton h-8 w-8"></div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Offline Servers Skeleton */}
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="skeleton h-4 w-4 rounded-full"></div>
+                        <h3 className="text-xl font-bold">{t('dashboard.offlineServers')} <span className="font-mono">(0)</span></h3>
+                      </div>
+                      <div className="skeleton h-6 w-6"></div>
+                    </div>
+                    <div className="grid gap-4">
+                      {[1].map((i) => (
                         <div key={i} className="card bg-base-100 shadow border-2 border-base-300">
                           <div className="card-body">
                             <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
@@ -573,57 +500,73 @@ function Dashboard() {
           <div className="card bg-base-100 shadow-xl rounded-lg">
             <div className="card-body">
               <div className="flex justify-between items-center mb-6">
-                <h2 className="card-title text-2xl">Minecraft Server Dashboard</h2>
+                <h2 className="card-title text-2xl">{t('dashboard.title')}</h2>
                 <div className="flex gap-2">
                   <button onClick={handleModalOpen} className="btn btn-primary">
-                    Nieuwe Server
+                    {t('dashboard.newServer')}
                   </button>
                   <button onClick={handleLogout} className="btn btn-ghost">
-                    Logout
+                    {t('dashboard.logout')}
                   </button>
                 </div>
               </div>
               
-              <div className="space-y-4">
+              <div className="space-y-6">
+                {/* Online Servers Section */}
                 <div className="space-y-4">
-                  <h3 className="text-xl font-bold">Mijn Servers <span className="font-mono">({servers.length})</span></h3>
-                  {servers.length === 0 ? (
-                    <div className="alert alert-warning border-2 border-warning/40">
-                      <div className="flex items-center gap-2 w-full">
-                        <i className="fas fa-exclamation-triangle text-warning text-xl opacity-100"></i>
-                        <span className="text-warning-content text-sm md:text-base">
-                          Je hebt nog geen servers aangemaakt. Klik op <span className="font-semibold">"Nieuwe Server"</span> om er een aan te maken.
-                        </span>
+                  <div 
+                    className="flex items-center justify-between cursor-pointer hover:bg-base-200/50 p-2 rounded-lg transition-colors"
+                    onClick={() => toggleSection('online')}
+                  >
+                    <div className="flex items-center gap-2">
+                      <div className="relative">
+                        <div className="absolute -inset-1 bg-success/20 rounded-full animate-ping online-dot-ping"></div>
+                        <div className="relative w-3 h-3 bg-success rounded-full"></div>
                       </div>
+                      <h3 className="text-xl font-bold">{t('dashboard.onlineServers')} <span className="font-mono">({onlineServers.length})</span></h3>
                     </div>
-                  ) : (
+                    <button className="btn btn-ghost btn-sm">
+                      <i className={`fas fa-chevron-${collapsedSections.online ? 'down' : 'up'} transition-transform duration-200`}></i>
+                    </button>
+                  </div>
+                  
+                  {!collapsedSections.online && (
                     <div className="grid gap-4">
-                      {servers.map(server => (
-                        <div 
-                          key={server.id} 
-                          className="card bg-base-100 shadow transition-all duration-300 ease-in-out transform hover:scale-[1.02] border-2 border-base-300"
-                        >
-                          <div className="card-body">
-                            <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
-                              <div className="w-full">
-                                <div className="flex justify-between items-start">
-                                  <div>
-                                    <h4 className="card-title text-base sm:text-lg break-all">
-                                      {server.name}
-                                    </h4>
-                                    <p className="text-sm text-gray-500 mt-1">
-                                      Versie: {server.version}
-                                    </p>
-                                    <p className="text-sm text-gray-500 mt-1">
-                                      IP: {server.ip_address}:{server.port}
-                                    </p>
-                                    <p className="text-sm text-gray-500 mt-1">
-                                      Status: <span className={`badge ${serverStatuses[server.id] ? (serverStatuses[server.id] === 'online' ? 'badge-success' : 'badge-error') : 'badge-ghost'}`}>
-                                        {serverStatuses[server.id] ? (serverStatuses[server.id] === 'online' ? 'Online' : 'Offline') : 'Loading'}
-                                      </span>
-                                    </p>
-                                  </div>
-                                  {serverStatuses[server.id] === 'online' && (
+                      {onlineServers.length === 0 ? (
+                        <div className="alert alert-info border-2 border-info/40">
+                          <div className="flex items-center gap-2 w-full">
+                            <i className="fas fa-info-circle text-info text-xl opacity-100"></i>
+                            <span className="text-info-content text-sm md:text-base">
+                              {t('dashboard.noOnlineServers')}
+                            </span>
+                          </div>
+                        </div>
+                      ) : (
+                        onlineServers.map(server => (
+                          <div 
+                            key={server.id} 
+                            className="card bg-base-100 shadow transition-all duration-300 ease-in-out transform hover:scale-[1.02] border-2 border-base-300"
+                          >
+                            <div className="card-body">
+                              <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
+                                <div className="w-full">
+                                  <div className="flex justify-between items-start">
+                                    <div>
+                                      <h4 className="card-title text-base sm:text-lg break-all">
+                                        {server.name}
+                                      </h4>
+                                      <p className="text-sm text-gray-500 mt-1">
+                                        {t('dashboard.server.version')}: {server.version}
+                                      </p>
+                                      <p className="text-sm text-gray-500 mt-1">
+                                        {t('dashboard.server.ip')}: {server.ip_address}:{server.port}
+                                      </p>
+                                      <p className="text-sm text-gray-500 mt-1">
+                                        {t('dashboard.server.status')}: <span className="badge badge-success">
+                                          {t('dashboard.server.online')}
+                                        </span>
+                                      </p>
+                                    </div>
                                     <div className="flex flex-col items-center gap-1 bg-base-200/50 rounded-lg p-3 min-w-[80px]">
                                       <i className="fas fa-users text-2xl text-primary/70"></i>
                                       <span className="font-mono text-2xl font-bold transition-all duration-300 ease-in-out">
@@ -638,55 +581,130 @@ function Dashboard() {
                                         </span>
                                       </span>
                                       <span className="text-xs text-gray-500 font-mono">
-                                        {serverPlayers[server.id]?.length === 1 ? 'Player' : 'Players'}
+                                        {serverPlayers[server.id]?.length === 1 ? t('dashboard.server.player') : t('dashboard.server.players')}
                                       </span>
                                     </div>
-                                  )}
+                                  </div>
                                 </div>
-                              </div>
-                              
-                              <div className="w-full sm:w-auto flex justify-center sm:justify-end gap-2">
-                                <button 
-                                  onClick={() => serverStatuses[server.id] !== 'online' && handleStartServer(server.id)}
-                                  className={`btn btn-primary btn-sm w-32 sm:w-auto transition-colors duration-200 hover:bg-primary/90 border-2 border-primary/40 ${!serverStatuses[server.id] || serverStatuses[server.id] === 'online' ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
-                                  disabled={!serverStatuses[server.id] || serverStatuses[server.id] === 'online'}
-                                >
-                                  Start
-                                </button>
-                                <button 
-                                  onClick={() => serverStatuses[server.id] === 'online' && handleStopClick(server.id)}
-                                  className={`btn btn-error btn-sm w-32 sm:w-auto transition-colors duration-200 hover:bg-error/90 border-2 border-error/40 ${!serverStatuses[server.id] || serverStatuses[server.id] !== 'online' ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
-                                  disabled={!serverStatuses[server.id] || serverStatuses[server.id] !== 'online'}
-                                >
-                                  Stop
-                                </button>
-                                <button
-                                  onClick={() => handleConsoleOpen(server.id)}
-                                  className={`btn btn-info btn-sm w-32 sm:w-auto transition-colors duration-200 hover:bg-info/90 border-2 border-info/40 ${!serverStatuses[server.id] || serverStatuses[server.id] !== 'online' ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
-                                  disabled={!serverStatuses[server.id] || serverStatuses[server.id] !== 'online'}
-                                >
-                                  <i className="fas fa-terminal mr-2"></i>
-                                  Console
-                                </button>
-                                <button
-                                  className={`btn btn-ghost btn-sm text-warning hover:bg-warning/10 border-2 border-warning/40 ${!serverStatuses[server.id] || serverStatuses[server.id] === 'online' ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
-                                  disabled={!serverStatuses[server.id] || serverStatuses[server.id] === 'online'}
-                                  title="Server Settings"
-                                >
-                                  <i className="fas fa-wrench"></i>
-                                </button>
-                                <button
-                                  onClick={() => handleDeleteClick(server)}
-                                  className="btn btn-ghost btn-sm text-error hover:bg-error/10 border-2 border-error/40 relative z-10"
-                                  title="Server verwijderen"
-                                >
-                                  <i className="fas fa-times"></i>
-                                </button>
+                                
+                                <div className="w-full sm:w-auto flex justify-center sm:justify-end gap-2">
+                                  <button 
+                                    onClick={() => handleStopClick(server.id)}
+                                    className="btn btn-error btn-sm w-32 sm:w-auto transition-colors duration-200 hover:bg-error/90 border-2 border-error/40"
+                                  >
+                                    {t('dashboard.server.stop')}
+                                  </button>
+                                  <button
+                                    onClick={() => handleConsoleOpen(server.id)}
+                                    className="btn btn-info btn-sm w-32 sm:w-auto transition-colors duration-200 hover:bg-info/90 border-2 border-info/40"
+                                  >
+                                    <i className="fas fa-terminal mr-2"></i>
+                                    {t('dashboard.server.console')}
+                                  </button>
+                                  <button
+                                    className="btn btn-ghost btn-sm text-warning hover:bg-warning/10 border-2 border-warning/40"
+                                    title={t('dashboard.server.settings')}
+                                  >
+                                    <i className="fas fa-wrench"></i>
+                                  </button>
+                                  <button
+                                    onClick={() => handleDeleteClick(server)}
+                                    className="btn btn-ghost btn-sm text-error hover:bg-error/10 border-2 border-error/40 relative z-10"
+                                    title={t('dashboard.server.delete')}
+                                  >
+                                    <i className="fas fa-times"></i>
+                                  </button>
+                                </div>
                               </div>
                             </div>
                           </div>
+                        ))
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* Offline Servers Section */}
+                <div className="space-y-4">
+                  <div 
+                    className="flex items-center justify-between cursor-pointer hover:bg-base-200/50 p-2 rounded-lg transition-colors"
+                    onClick={() => toggleSection('offline')}
+                  >
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 bg-error rounded-full"></div>
+                      <h3 className="text-xl font-bold">{t('dashboard.offlineServers')} <span className="font-mono">({offlineServers.length})</span></h3>
+                    </div>
+                    <button className="btn btn-ghost btn-sm">
+                      <i className={`fas fa-chevron-${collapsedSections.offline ? 'down' : 'up'} transition-transform duration-200`}></i>
+                    </button>
+                  </div>
+                  
+                  {!collapsedSections.offline && (
+                    <div className="grid gap-4">
+                      {offlineServers.length === 0 ? (
+                        <div className="alert alert-info border-2 border-info/40">
+                          <div className="flex items-center gap-2 w-full">
+                            <i className="fas fa-info-circle text-info text-xl opacity-100"></i>
+                            <span className="text-info-content text-sm md:text-base">
+                              {t('dashboard.noOfflineServers')}
+                            </span>
+                          </div>
                         </div>
-                      ))}
+                      ) : (
+                        offlineServers.map(server => (
+                          <div 
+                            key={server.id} 
+                            className="card bg-base-100 shadow transition-all duration-300 ease-in-out transform hover:scale-[1.02] border-2 border-base-300"
+                          >
+                            <div className="card-body">
+                              <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
+                                <div className="w-full">
+                                  <div className="flex justify-between items-start">
+                                    <div>
+                                      <h4 className="card-title text-base sm:text-lg break-all">
+                                        {server.name}
+                                      </h4>
+                                      <p className="text-sm text-gray-500 mt-1">
+                                        {t('dashboard.server.version')}: {server.version}
+                                      </p>
+                                      <p className="text-sm text-gray-500 mt-1">
+                                        {t('dashboard.server.ip')}: {server.ip_address}:{server.port}
+                                      </p>
+                                      <p className="text-sm text-gray-500 mt-1">
+                                        {t('dashboard.server.status')}: <span className="badge badge-error">
+                                          {t('dashboard.server.offline')}
+                                        </span>
+                                      </p>
+                                    </div>
+                                  </div>
+                                </div>
+                                
+                                <div className="w-full sm:w-auto flex justify-center sm:justify-end gap-2">
+                                  <button 
+                                    onClick={() => handleStartServer(server.id)}
+                                    className="btn btn-primary btn-sm w-32 sm:w-auto transition-colors duration-200 hover:bg-primary/90 border-2 border-primary/40"
+                                  >
+                                    {t('dashboard.server.start')}
+                                  </button>
+                                  <button
+                                    className="btn btn-ghost btn-sm text-warning hover:bg-warning/10 border-2 border-warning/40"
+                                    title={t('dashboard.server.settings')}
+                                  >
+                                    <i className="fas fa-wrench"></i>
+                                  </button>
+                                  <button
+                                    onClick={() => handleDeleteClick(server)}
+                                    className="btn btn-ghost btn-sm text-error hover:bg-error/10 border-2 border-error/40 relative z-10"
+                                    title={t('dashboard.server.delete')}
+                                  >
+                                    <i className="fas fa-times"></i>
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ))
+                      )}
                     </div>
                   )}
                 </div>
@@ -705,17 +723,16 @@ function Dashboard() {
       {/* Delete Confirmation Modal */}
       <dialog className={`modal ${showDeleteModal ? 'modal-open' : ''}`}>
         <div className="modal-box">
-          <h3 className="font-bold text-lg mb-4">Server Verwijderen</h3>
+          <h3 className="font-bold text-lg mb-4">{t('dashboard.modals.delete.title')}</h3>
           <p className="py-4">
-            Weet je zeker dat je de server <span className="font-semibold">{serverToDelete?.name}</span> wilt verwijderen?
-            Deze actie kan niet ongedaan worden gemaakt.
+            {t('dashboard.modals.delete.confirm').replace('{name}', serverToDelete?.name)}
           </p>
           <div className="modal-action">
             <button className="btn btn-ghost" onClick={handleDeleteCancel}>
-              Annuleren
+              {t('dashboard.modals.delete.cancel')}
             </button>
             <button className="btn btn-error" onClick={handleDeleteConfirm}>
-              Verwijderen
+              {t('dashboard.modals.delete.confirmButton')}
             </button>
           </div>
         </div>
@@ -730,13 +747,16 @@ function Dashboard() {
         serverId={selectedServerId}
       />
 
-      {/* Update the Stop Confirmation Modal */}
+      {/* Stop Confirmation Modal */}
       <dialog className={`modal ${showStopConfirmModal ? 'modal-open' : ''}`}>
         <div className="modal-box max-w-2xl p-[2px] bg-gradient-to-r from-primary to-secondary rounded-lg">
           <div className="bg-base-100 rounded-lg p-6">
-            <h3 className="font-bold text-lg mb-4">Stop Server</h3>
+            <h3 className="font-bold text-lg mb-4">{t('dashboard.modals.stop.title')}</h3>
             <p className="py-4">
-              There {onlinePlayers.length === 1 ? 'is' : 'are'} currently {onlinePlayers.length} player{onlinePlayers.length !== 1 ? 's' : ''} online:
+              {t('dashboard.modals.stop.playersOnline')
+                .replace('{is}', onlinePlayers.length === 1 ? t('dashboard.modals.stop.is') : t('dashboard.modals.stop.are'))
+                .replace('{count}', onlinePlayers.length)
+                .replace('{plural}', onlinePlayers.length !== 1 ? 's' : '')}
             </p>
             <div className="flex flex-wrap gap-2 mb-4">
               {onlinePlayers.map((player) => (
@@ -759,14 +779,14 @@ function Dashboard() {
               ))}
             </div>
             <p className="text-warning mb-4">
-              Are you sure you want to stop the server? This will disconnect all players.
+              {t('dashboard.modals.stop.confirm')}
             </p>
             <div className="modal-action">
               <button className="btn btn-ghost" onClick={handleStopCancel}>
-                Cancel
+                {t('dashboard.modals.stop.cancel')}
               </button>
               <button className="btn btn-error" onClick={handleStopConfirm}>
-                Stop Server
+                {t('dashboard.modals.stop.confirmButton')}
               </button>
             </div>
           </div>

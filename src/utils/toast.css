@@ -16,6 +16,16 @@
 .toast .alert {
   min-width: 300px;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  border-radius: 0.5rem !important; /* Consistent rounded corners */
+}
+
+/* Ensure progress bar matches the toast border radius */
+.toast .alert .progress {
+  border-radius: 0.5rem !important;
+}
+
+.online-dot-ping {
+  animation-duration: 2s !important;
 }
 
 /* Stack toasts with proper spacing */
